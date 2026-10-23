@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10090d">
+  <meta name="description" content="Your private space for thoughts, memories, and midnight pages.">
+  <title>NOCTURNE Journal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="ambient"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="NOCTURNE Journal home">NOCTURNE<span> JOURNAL</span></a>
+    <div id="accountArea" class="account-area hidden">
+      <span id="userEmail" class="user-email"></span>
+      <button id="exportBtn" class="quiet-button">Export backup</button>
+      <button id="signOutBtn" class="quiet-button">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="setupNotice" class="setup-notice hidden">
+      <h2>One little setup step</h2>
+      <p>Add your Supabase project URL and public anon/publishable key to <code>config.js</code>. Follow the README instructions. Do not put a service-role key here.</p>
+    </section>
+
+    <section id="authView" class="auth-wrap">
+      <div class="hero">
+        <p class="eyebrow">A private kind of midnight</p>
+        <h1>Your thoughts.<br><span>Your own world.</span></h1>
+        <p class="intro">A quiet place for the things you don't want to forget.</p>
+      </div>
+      <div class="auth-card">
+        <div class="tabs" role="tablist">
+          <button id="loginTab" class="tab active" type="button">Sign in</button>
+          <button id="signupTab" class="tab" type="button">Create account</button>
+        </div>
+        <form id="authForm">
+          <label for="email">Email address</label>
+          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required>
+          <button id="authSubmit" class="primary-button" type="submit">Enter your journal</button>
+          <p id="authMessage" class="message" aria-live="polite"></p>
+        </form>
+        <p class="small-note">Your journal is linked to your account. Choose a unique password and never share it.</p>
+      </div>
+    </section>
+
+    <section id="journalView" class="journal-view hidden">
+      <div class="welcome-row">
+        <div>
+          <p class="eyebrow">Your private pages</p>
+          <h1>Dear <span>diary.</span></h1>
+          <p class="date-line" id="todayLabel"></p>
+        </div>
+        <button id="newEntryBtn" class="primary-button new-entry-button" type="button">＋ New entry</button>
+      </div>
+
+      <section id="editor" class="editor-card hidden">
+        <div class="editor-top">
+          <h2 id="editorHeading">A new page</h2>
+          <button id="cancelEditBtn" class="quiet-button" type="button">Cancel</button>
+        </div>
+        <form id="entryForm">
+          <label for="entryTitle">Title</label>
+          <input id="entryTitle" maxlength="120" placeholder="Give this moment a name…" required>
+          <div class="form-grid">
+            <div>
+              <label for="entryDate">Date</label>
+              <input id="entryDate" type="date" required>
+            </div>
+            <div>
+              <label for="entryMood">Mood</label>
+              <select id="entryMood">
+                <option value="🌙 Calm">🌙 Calm</option>
+                <option value="🖤 Heavy">🖤 Heavy</option>
+                <option value="✨ Happy">✨ Happy</option>
+                <option value="🌧️ Sad">🌧️ Sad</option>
+                <option value="🔥 Angry">🔥 Angry</option>
+                <option value="🌫️ Unsure">🌫️ Unsure</option>
+                <option value="💗 Grateful">💗 Grateful</option>
+                <option value="⚡ Excited">⚡ Excited</option>
+              </select>
+            </div>
+          </div>
+          <label for="entryBody">Your thoughts</label>
+          <textarea id="entryBody" rows="10" placeholder="Take your time. Nobody else needs to understand this page…" required></textarea>
+          <div class="editor-actions">
+            <span class="save-hint">Your entry saves to your account when you press save.</span>
+            <button id="saveEntryBtn" class="primary-button" type="submit">Save entry</button>
+          </div>
+          <p id="entryMessage" class="message" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <div class="tools-row">
+        <div class="search-wrap">
+          <span aria-hidden="true">⌕</span>
+          <input id="searchInput" type="search" placeholder="Search your memories…" aria-label="Search diary entries">
+        </div>
+        <select id="moodFilter" aria-label="Filter entries by mood">
+          <option value="">All moods</option>
+          <option>🌙 Calm</option><option>🖤 Heavy</option><option>✨ Happy</option>
+          <option>🌧️ Sad</option><option>🔥 Angry</option><option>🌫️ Unsure</option>
+          <option>💗 Grateful</option><option>⚡ Excited</option>
+        </select>
+      </div>
+
+      <div class="section-title">
+        <h2>Pages from your life</h2>
+        <span id="entryCount">0 entries</span>
+      </div>
+      <p id="loadingState" class="empty-state">Opening your journal…</p>
+      <div id="entriesList" class="entries-grid"></div>
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-moon">☾</div>
+        <h3>Your story starts here.</h3>
+        <p>No entries yet. Make your first page whenever you're ready.</p>
+        <button id="emptyNewEntryBtn" class="quiet-button" type="button">Write your first entry</button>
+      </div>
+      <p class="privacy-note">A gentle reminder: sign out on shared devices, and export a backup now and then.</p>
+    </section>
+  </main>
+
+  <footer>MADE FOR THE HOURS AFTER DARK · <span>NOCTURNE</span></footer>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
